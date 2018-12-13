@@ -17,7 +17,10 @@ public class ConfirmViewController: UIViewController, UIScrollViewDelegate {
 	@IBOutlet weak var cancelButton: UIButton!
 	@IBOutlet weak var confirmButton: UIButton!
 	@IBOutlet weak var centeringView: UIView!
-	
+    @IBOutlet weak var overlayLabel: UILabel!
+    
+    var overlayText : NSAttributedString?
+    
     var croppingParameters: CroppingParameters {
         didSet {
             cropOverlay.isResizable = croppingParameters.allowResizing
@@ -33,17 +36,19 @@ public class ConfirmViewController: UIViewController, UIScrollViewDelegate {
 	let asset: PHAsset?
 	let image: UIImage?
 	
-	public init(image: UIImage, croppingParameters: CroppingParameters) {
+    public init(image: UIImage, croppingParameters: CroppingParameters, overlayText : NSAttributedString?) {
 		self.croppingParameters = croppingParameters
 		self.asset = nil
 		self.image = image
+        self.overlayText = overlayText
 		super.init(nibName: "ConfirmViewController", bundle: CameraGlobals.shared.bundle)
 	}
 	
-	public init(asset: PHAsset, croppingParameters: CroppingParameters) {
+	public init(asset: PHAsset, croppingParameters: CroppingParameters, overlayText : NSAttributedString?) {
 		self.croppingParameters = croppingParameters
 		self.asset = asset
 		self.image = nil
+        self.overlayText = overlayText
 		super.init(nibName: "ConfirmViewController", bundle: CameraGlobals.shared.bundle)
 	}
 	
@@ -61,7 +66,7 @@ public class ConfirmViewController: UIViewController, UIScrollViewDelegate {
 	
 	public override func viewDidLoad() {
 		super.viewDidLoad()
-
+        overlayLabel.attributedText = overlayText
 		view.backgroundColor = UIColor.black
 		
 		scrollView.addSubview(imageView)
