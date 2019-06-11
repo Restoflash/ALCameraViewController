@@ -46,6 +46,7 @@ public extension CameraViewController {
 open class CameraViewController: UIViewController {
     
     open var confirmOverlayText : NSAttributedString? = nil
+    open var handlePermissions : Bool = false
     var didUpdateViews = false
     var croppingParameters: CroppingParameters
     var animationRunning = false
@@ -273,7 +274,9 @@ open class CameraViewController: UIViewController {
     open override func viewDidLoad() {
         super.viewDidLoad()
         setupActions()
-        checkPermissions()
+        if handlePermissions {
+            checkPermissions()
+        }
         cameraView.configureFocus()
         cameraView.configureZoom()
     }
