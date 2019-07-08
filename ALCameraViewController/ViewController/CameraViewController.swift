@@ -286,7 +286,7 @@ open class CameraViewController: UIViewController {
      */
     open override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        #if arch(i386) || arch(x86_64)
+        #if targetEnvironment(simulator)
             //To avoid crash while testing on simultor 
         #else
             cameraView.startSession()
