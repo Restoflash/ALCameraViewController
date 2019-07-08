@@ -53,7 +53,11 @@ open class CameraViewController: UIViewController {
     let allowVolumeButtonCapture: Bool
     
     var lastInterfaceOrientation : UIInterfaceOrientation?
+    
     open var onCompletion: CameraViewCompletion?
+    
+    open var cameraButtonSet : ((UIButton) -> Void)?
+    
     var volumeControl: VolumeControl?
     
     var animationDuration: TimeInterval = 0.5
@@ -98,7 +102,7 @@ open class CameraViewController: UIViewController {
         return cameraOverlay
     }()
     
-    let cameraButton : UIButton = {
+    public let cameraButton : UIButton = {
         let button = UIButton(frame: CGRect(x: 0, y: 0, width: 64, height: 64))
         button.translatesAutoresizingMaskIntoConstraints = false
         button.isEnabled = false
@@ -281,13 +285,21 @@ open class CameraViewController: UIViewController {
         cameraView.configureZoom()
     }
 
+    open override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        if(cameraButtonSet != nil)
+        {
+            cameraButtonSet!(self.cameraButton)
+        }
+    }
     /**
      * Start the session of the camera.
      */
     open override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
+        
         #if targetEnvironment(simulator)
-            //To avoid crash while testing on simultor 
+            return
         #else
             cameraView.startSession()
         #endif
@@ -308,6 +320,7 @@ open class CameraViewController: UIViewController {
         if cameraView.session?.isRunning == true {
             notifyCameraReady()
         }
+    
     }
 
     open override func viewWillDisappear(_ animated: Bool) {
