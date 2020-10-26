@@ -278,12 +278,12 @@ public class ConfirmViewController: UIViewController, UIScrollViewDelegate {
 	
 	func showSpinner() -> UIActivityIndicatorView {
 		let spinner = UIActivityIndicatorView()
-		spinner.activityIndicatorViewStyle = .white
+        spinner.style = .white
 		spinner.center = view.center
 		spinner.startAnimating()
 		
 		view.addSubview(spinner)
-		view.bringSubview(toFront: spinner)
+        view.bringSubviewToFront(spinner)
 		
 		return spinner
 	}
@@ -310,24 +310,21 @@ public class ConfirmViewController: UIViewController, UIScrollViewDelegate {
 	}
 	
 	private func makeProportionalCropRect() -> CGRect {
-		var cropRect = CGRect(x: cropOverlay.frame.origin.x + cropOverlay.outterGap,
-		                      y: cropOverlay.frame.origin.y + cropOverlay.outterGap,
-		                      width: cropOverlay.frame.size.width - 2 * cropOverlay.outterGap,
-		                      height: cropOverlay.frame.size.height - 2 * cropOverlay.outterGap)
+        var cropRect = cropOverlay.croppedRect
         cropRect.origin.x += scrollView.contentOffset.x - imageView.frame.origin.x
         cropRect.origin.y += scrollView.contentOffset.y - imageView.frame.origin.y
 
-		let normalizedX = max(0, cropRect.origin.x / imageView.frame.width)
-		let normalizedY = max(0, cropRect.origin.y / imageView.frame.height)
+        let normalizedX = max(0, cropRect.origin.x / imageView.frame.width)
+        let normalizedY = max(0, cropRect.origin.y / imageView.frame.height)
 
         let extraWidth = min(0, cropRect.origin.x)
         let extraHeight = min(0, cropRect.origin.y)
 
-		let normalizedWidth = min(1, (cropRect.width + extraWidth) / imageView.frame.width)
-		let normalizedHeight = min(1, (cropRect.height + extraHeight) / imageView.frame.height)
-		
-		return CGRect(x: normalizedX, y: normalizedY, width: normalizedWidth, height: normalizedHeight)
-	}
+        let normalizedWidth = min(1, (cropRect.width + extraWidth) / imageView.frame.width)
+        let normalizedHeight = min(1, (cropRect.height + extraHeight) / imageView.frame.height)
+        
+        return CGRect(x: normalizedX, y: normalizedY, width: normalizedWidth, height: normalizedHeight)
+    }
 	
 }
 

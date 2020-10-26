@@ -14,10 +14,12 @@ public typealias CameraViewCompletion = (UIImage?, PHAsset?) -> Void
 
 public extension CameraViewController {
     /// Provides an image picker wrapped inside a UINavigationController instance
+
     public class func imagePickerViewController(croppingParameters: CroppingParameters, confirmOverlayText : NSAttributedString?, completion: @escaping CameraViewCompletion) -> UINavigationController {
+
         let imagePicker = PhotoLibraryViewController()
         let navigationController = UINavigationController(rootViewController: imagePicker)
-        
+       // self.confirm
         navigationController.navigationBar.barTintColor = UIColor.black
         navigationController.navigationBar.barStyle = UIBarStyle.black
         navigationController.modalTransitionStyle = UIModalTransitionStyle.crossDissolve
@@ -62,7 +64,7 @@ open class CameraViewController: UIViewController {
     
     var animationDuration: TimeInterval = 0.5
     var animationSpring: CGFloat = 0.5
-    var rotateAnimation: UIViewAnimationOptions = .curveLinear
+    var rotateAnimation: UIView.AnimationOptions = .curveLinear
     
     var cameraButtonEdgeConstraint: NSLayoutConstraint?
     var cameraButtonGravityConstraint: NSLayoutConstraint?
@@ -84,22 +86,11 @@ open class CameraViewController: UIViewController {
     
     var flashButtonEdgeConstraint: NSLayoutConstraint?
     var flashButtonGravityConstraint: NSLayoutConstraint?
-    
-    var cameraOverlayEdgeOneConstraint: NSLayoutConstraint?
-    var cameraOverlayEdgeTwoConstraint: NSLayoutConstraint?
-    var cameraOverlayWidthConstraint: NSLayoutConstraint?
-    var cameraOverlayCenterConstraint: NSLayoutConstraint?
-    
+
     let cameraView : CameraView = {
         let cameraView = CameraView()
         cameraView.translatesAutoresizingMaskIntoConstraints = false
         return cameraView
-    }()
-
-    let cameraOverlay : CropOverlay = {
-        let cameraOverlay = CropOverlay()
-        cameraOverlay.translatesAutoresizingMaskIntoConstraints = false
-        return cameraOverlay
     }()
     
     public let cameraButton : UIButton = {
@@ -169,15 +160,15 @@ open class CameraViewController: UIViewController {
                 allowsLibraryAccess: Bool = true,
                 allowsSwapCameraOrientation: Bool = true,
                 allowVolumeButtonCapture: Bool = true,
+                confirmOverlayText: NSAttributedString,
                 completion: @escaping CameraViewCompletion) {
 
         self.croppingParameters = croppingParameters
         self.allowsLibraryAccess = allowsLibraryAccess
         self.allowVolumeButtonCapture = allowVolumeButtonCapture
+        self.confirmOverlayText = confirmOverlayText
         super.init(nibName: nil, bundle: nil)
         onCompletion = completion
-        cameraOverlay.isHidden = !croppingParameters.isEnabled
-        cameraOverlay.isUserInteractionEnabled = false
         libraryButton.isEnabled = allowsLibraryAccess
         libraryButton.isHidden = !allowsLibraryAccess
 		swapButton.isEnabled = allowsSwapCameraOrientation
@@ -205,7 +196,6 @@ open class CameraViewController: UIViewController {
         super.loadView()
         view.backgroundColor = UIColor.black
         [cameraView,
-            cameraOverlay,
             cameraButton,
             closeButton,
             flashButton,
@@ -253,14 +243,7 @@ open class CameraViewController: UIViewController {
         
         configFlashEdgeButtonConstraint(statusBarOrientation)
         configFlashGravityButtonConstraint(statusBarOrientation)
-        
-        let padding : CGFloat = portrait ? 16.0 : -16.0
-        removeCameraOverlayEdgesConstraints()
-        configCameraOverlayEdgeOneContraint(portrait, padding: padding)
-        configCameraOverlayEdgeTwoConstraint(portrait, padding: padding)
-        configCameraOverlayWidthConstraint(portrait)
-        configCameraOverlayCenterConstraint(portrait)
-        
+
         rotate(actualInterfaceOrientation: statusBarOrientation)
         
         super.updateViewConstraints()
@@ -278,10 +261,10 @@ open class CameraViewController: UIViewController {
     open override func viewDidLoad() {
         super.viewDidLoad()
         setupActions()
+
         if handlePermissions {
             checkPermissions()
         }
-        cameraView.configureFocus()
         cameraView.configureZoom()
     }
 
@@ -370,7 +353,7 @@ open class CameraViewController: UIViewController {
         NotificationCenter.default.addObserver(
             self,
             selector: #selector(rotateCameraView),
-            name: NSNotification.Name.UIDeviceOrientationDidChange,
+            name: UIDevice.orientationDidChangeNotification,
             object: nil)
     }
     
@@ -655,12 +638,12 @@ open class CameraViewController: UIViewController {
 
     private func showSpinner() -> UIActivityIndicatorView {
         let spinner = UIActivityIndicatorView()
-        spinner.activityIndicatorViewStyle = .white
+        spinner.style = .white
         spinner.center = view.center
         spinner.startAnimating()
         
         view.addSubview(spinner)
-        view.bringSubview(toFront: spinner)
+        view.bringSubviewToFront(spinner)
         
         return spinner
     }
