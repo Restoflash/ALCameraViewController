@@ -101,7 +101,15 @@ public class ConfirmViewController: UIViewController, UIScrollViewDelegate {
 			enable()
 		}
 	}
-	
+    
+    public override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        if(UIAccessibility.isVoiceOverRunning)
+        {
+            UIAccessibility.post(notification: UIAccessibility.Notification.screenChanged,  argument: self.confirmButton)
+        }
+        
+    }
 	public override func viewWillLayoutSubviews() {
 		super.viewWillLayoutSubviews()
 		let scale = calculateMinimumScale(view.frame.size)
