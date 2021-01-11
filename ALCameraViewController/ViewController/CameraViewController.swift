@@ -108,7 +108,7 @@ open class CameraViewController: UIViewController {
         return button
     }()
     
-    let closeButton : UIButton = {
+    public let closeButton : UIButton = {
         let button = UIButton()
         button.translatesAutoresizingMaskIntoConstraints = false
         button.setImage(UIImage(named: "closeButton",
