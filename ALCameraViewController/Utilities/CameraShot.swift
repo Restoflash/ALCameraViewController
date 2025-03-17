@@ -18,7 +18,8 @@ public func takePhoto(_ stillImageOutput: AVCaptureStillImageOutput, videoOrient
         return
     }
     
-    videoConnection.videoOrientation = videoOrientation
+    // Always force portrait orientation for the captured image regardless of input orientation
+    videoConnection.videoOrientation = .portrait
     
     stillImageOutput.captureStillImageAsynchronously(from: videoConnection, completionHandler: { buffer, error in
         

@@ -121,7 +121,9 @@ public class CameraView: UIView {
         preview = AVCaptureVideoPreviewLayer(session: session)
         preview.videoGravity = AVLayerVideoGravity.resizeAspectFill
         preview.frame = bounds
-
+        
+        // Set preview orientation to portrait
+        preview.connection?.videoOrientation = .portrait
         layer.addSublayer(preview)
     }
     
@@ -133,11 +135,13 @@ public class CameraView: UIView {
     public func capturePhoto(completion: @escaping CameraShotCompletion) {
         isUserInteractionEnabled = false
 
-        guard let output = imageOutput, let orientation = AVCaptureVideoOrientation(rawValue: UIDevice.current.orientation.rawValue) else {
+        guard let output = imageOutput else {
             completion(nil)
             return
         }
 
+        // Always use portrait orientation instead of device orientation
+        let orientation = AVCaptureVideoOrientation.portrait
         let size = frame.size
 
         cameraQueue.sync {
@@ -223,21 +227,8 @@ public class CameraView: UIView {
         guard preview != nil else {
             return
         }
-        switch UIApplication.shared.statusBarOrientation {
-            case .portrait:
-              preview?.connection?.videoOrientation = AVCaptureVideoOrientation.portrait
-              break
-            case .portraitUpsideDown:
-              preview?.connection?.videoOrientation = AVCaptureVideoOrientation.portraitUpsideDown
-              break
-            case .landscapeRight:
-              preview?.connection?.videoOrientation = AVCaptureVideoOrientation.landscapeRight
-              break
-            case .landscapeLeft:
-              preview?.connection?.videoOrientation = AVCaptureVideoOrientation.landscapeLeft
-              break
-            default: break
-        }
+        // Always force portrait orientation regardless of device orientation
+        preview?.connection?.videoOrientation = AVCaptureVideoOrientation.portrait
     }
     
 }
