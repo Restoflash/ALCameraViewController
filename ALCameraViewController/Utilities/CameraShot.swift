@@ -18,20 +18,22 @@ public func takePhoto(_ stillImageOutput: AVCaptureStillImageOutput, videoOrient
         return
     }
     
+    var image : UIImage? = nil
+    
     // Always force portrait orientation for the captured image regardless of input orientation
     videoConnection.videoOrientation = .portrait
     
     stillImageOutput.captureStillImageAsynchronously(from: videoConnection, completionHandler: { buffer, error in
         
         guard let buffer = buffer,
-            let imageData = AVCaptureStillImageOutput.jpegStillImageNSDataRepresentation(buffer),
-            var image = UIImage(data: imageData) 
+              let imageData = AVCaptureStillImageOutput.jpegStillImageNSDataRepresentation(buffer)
         else {
             completion(nil)
             return
         }
+        image = UIImage(data: imageData)
         
-        if let cgImage = image.cgImage {
+        if let cgImage = image!.cgImage {
             // Determine the correct image orientation based on the current device orientation
             
             let deviceOrientation = UIDevice.current.orientation
@@ -51,29 +53,7 @@ public func takePhoto(_ stillImageOutput: AVCaptureStillImageOutput, videoOrient
             }
             image = UIImage(cgImage: cgImage, scale: 1.0, orientation: imageOrientation)
         }
-        
-         if cameraPosition == .front, let cgImage = image.cgImage {
-            switch image.imageOrientation {
-            case .leftMirrored:
-                image = UIImage(cgImage: cgImage, scale: image.scale, orientation: .right)
-            case .left:
-                image = UIImage(cgImage: cgImage, scale: image.scale, orientation: .rightMirrored)
-            case .rightMirrored:
-                image = UIImage(cgImage: cgImage, scale: image.scale, orientation: .left)
-            case .right:
-                image = UIImage(cgImage: cgImage, scale: image.scale, orientation: .leftMirrored)
-            case .up:
-                image = UIImage(cgImage: cgImage, scale: image.scale, orientation: .upMirrored)
-            case .upMirrored:
-                image = UIImage(cgImage: cgImage, scale: image.scale, orientation: .up)
-            case .down:
-                image = UIImage(cgImage: cgImage, scale: image.scale, orientation: .downMirrored)
-            case .downMirrored:
-                image = UIImage(cgImage: cgImage, scale: image.scale, orientation: .down)
-            @unknown default:
-                break
-            }
-        }
+    
         
         completion(image)
     })
