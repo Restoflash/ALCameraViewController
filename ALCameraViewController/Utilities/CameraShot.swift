@@ -17,44 +17,52 @@ public func takePhoto(_ stillImageOutput: AVCaptureStillImageOutput, videoOrient
         completion(nil)
         return
     }
-    
-    var image : UIImage? = nil
-    
+        
     // Always force portrait orientation for the captured image regardless of input orientation
     videoConnection.videoOrientation = .portrait
     
     stillImageOutput.captureStillImageAsynchronously(from: videoConnection, completionHandler: { buffer, error in
         
         guard let buffer = buffer,
-              let imageData = AVCaptureStillImageOutput.jpegStillImageNSDataRepresentation(buffer)
+              let imageData = AVCaptureStillImageOutput.jpegStillImageNSDataRepresentation(buffer),
+              let image = UIImage(data: imageData)
         else {
             completion(nil)
             return
         }
-        image = UIImage(data: imageData)
         
-        if let cgImage = image!.cgImage {
-            // Determine the correct image orientation based on the current device orientation
-            
-            let deviceOrientation = UIDevice.current.orientation
-            let imageOrientation: UIImage.Orientation
-            
-            switch deviceOrientation {
-            case .portrait:
-                imageOrientation = .right
-            case .portraitUpsideDown:
-                imageOrientation = .left
-            case .landscapeLeft:
-                imageOrientation = .up
-            case .landscapeRight:
-                imageOrientation = .down
-            default:
-                imageOrientation = .right
-            }
-            image = UIImage(cgImage: cgImage, scale: 1.0, orientation: imageOrientation)
-        }
-    
-        
-        completion(image)
+        completion(rotateImageToPortrait(image: image))
     })
+}
+
+
+func rotateImageToPortrait(image: UIImage) -> UIImage? {
+    guard let cgImage = image.cgImage else { return nil }
+
+    var transform = CGAffineTransform.identity
+
+    switch image.imageOrientation {
+    case .right:
+        transform = CGAffineTransform(rotationAngle: -.pi / 2)
+    case .left:
+        transform = CGAffineTransform(rotationAngle: .pi / 2)
+    case .down:
+        transform = CGAffineTransform(rotationAngle: .pi)
+    default:
+        transform = .identity
+    }
+
+    // Apply the transform to the image context
+    UIGraphicsBeginImageContext(CGSize(width: image.size.height, height: image.size.width))
+    if let context = UIGraphicsGetCurrentContext() {
+        context.translateBy(x: image.size.height / 2, y: image.size.width / 2)
+        context.rotate(by: transform.a)
+        context.scaleBy(x: 1.0, y: -1.0)
+        context.draw(cgImage, in: CGRect(x: -image.size.width / 2, y: -image.size.height / 2, width: image.size.width, height: image.size.height))
+    }
+
+    let rotatedImage = UIGraphicsGetImageFromCurrentImageContext()
+    UIGraphicsEndImageContext()
+
+    return rotatedImage
 }
