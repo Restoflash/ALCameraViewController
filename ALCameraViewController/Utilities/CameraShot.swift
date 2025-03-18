@@ -31,38 +31,61 @@ public func takePhoto(_ stillImageOutput: AVCaptureStillImageOutput, videoOrient
             return
         }
         
-        completion(rotateImageToPortrait(image: image))
+        completion(fixOrientation(img: image))
     })
 }
 
-
-func rotateImageToPortrait(image: UIImage) -> UIImage? {
-    guard let cgImage = image.cgImage else { return nil }
-
+func fixOrientation(img: UIImage) -> UIImage {
+    guard img.imageOrientation != .up else { return img }
+    
     var transform = CGAffineTransform.identity
-
-    switch image.imageOrientation {
-    case .right:
-        transform = CGAffineTransform(rotationAngle: -.pi / 2)
-    case .left:
-        transform = CGAffineTransform(rotationAngle: .pi / 2)
-    case .down:
-        transform = CGAffineTransform(rotationAngle: .pi)
+    let width = img.size.width, height = img.size.height
+    
+    switch img.imageOrientation {
+    case .down, .downMirrored:
+        transform = transform.translatedBy(x: width, y: height)
+        transform = transform.rotated(by: .pi)
+    case .left, .leftMirrored:
+        transform = transform.translatedBy(x: width, y: 0)
+        transform = transform.rotated(by: .pi/2)
+    case .right, .rightMirrored:
+        transform = transform.translatedBy(x: 0, y: height)
+        transform = transform.rotated(by: -.pi/2)
     default:
-        transform = .identity
+        break
     }
-
-    // Apply the transform to the image context
-    UIGraphicsBeginImageContext(CGSize(width: image.size.height, height: image.size.width))
-    if let context = UIGraphicsGetCurrentContext() {
-        context.translateBy(x: image.size.height / 2, y: image.size.width / 2)
-        context.rotate(by: transform.a)
-        context.scaleBy(x: 1.0, y: -1.0)
-        context.draw(cgImage, in: CGRect(x: -image.size.width / 2, y: -image.size.height / 2, width: image.size.width, height: image.size.height))
+    
+    switch img.imageOrientation {
+    case .upMirrored, .downMirrored:
+        transform = transform.translatedBy(x: width, y: 0)
+        transform = transform.scaledBy(x: -1, y: 1)
+    case .leftMirrored, .rightMirrored:
+        transform = transform.translatedBy(x: height, y: 0)
+        transform = transform.scaledBy(x: -1, y: 1)
+    default:
+        break
     }
-
-    let rotatedImage = UIGraphicsGetImageFromCurrentImageContext()
-    UIGraphicsEndImageContext()
-
-    return rotatedImage
+    
+    guard let cgImg = img.cgImage,
+          let ctx = CGContext(data: nil,
+                              width: Int(width),
+                              height: Int(height),
+                              bitsPerComponent: cgImg.bitsPerComponent,
+                              bytesPerRow: 0,
+                              space: cgImg.colorSpace ?? CGColorSpaceCreateDeviceRGB(),
+                              bitmapInfo: cgImg.bitmapInfo.rawValue)
+    else { return img }
+    
+    ctx.concatenate(transform)
+    switch img.imageOrientation {
+    case .left, .leftMirrored, .right, .rightMirrored:
+        ctx.draw(cgImg, in: CGRect(x: 0, y: 0, width: height, height: width))
+    default:
+        ctx.draw(cgImg, in: CGRect(x: 0, y: 0, width: width, height: height))
+    }
+    
+    if let cgimg = ctx.makeImage() {
+        return UIImage(cgImage: cgimg)
+    }
+    return img
 }
