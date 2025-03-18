@@ -25,13 +25,34 @@ public func takePhoto(_ stillImageOutput: AVCaptureStillImageOutput, videoOrient
         
         guard let buffer = buffer,
             let imageData = AVCaptureStillImageOutput.jpegStillImageNSDataRepresentation(buffer),
-            var image = UIImage(data: imageData) else {
+            var image = UIImage(data: imageData) 
+        else {
             completion(nil)
             return
         }
-
-        // flip the image to match the orientation of the preview
-        if cameraPosition == .front, let cgImage = image.cgImage {
+        
+        if let cgImage = image.cgImage {
+            // Determine the correct image orientation based on the current device orientation
+            
+            let deviceOrientation = UIDevice.current.orientation
+            let imageOrientation: UIImage.Orientation
+            
+            switch deviceOrientation {
+            case .portrait:
+                imageOrientation = .right
+            case .portraitUpsideDown:
+                imageOrientation = .left
+            case .landscapeLeft:
+                imageOrientation = .up
+            case .landscapeRight:
+                imageOrientation = .down
+            default:
+                imageOrientation = .right
+            }
+            image = UIImage(cgImage: cgImage, scale: 1.0, orientation: imageOrientation)
+        }
+        
+         if cameraPosition == .front, let cgImage = image.cgImage {
             switch image.imageOrientation {
             case .leftMirrored:
                 image = UIImage(cgImage: cgImage, scale: image.scale, orientation: .right)
