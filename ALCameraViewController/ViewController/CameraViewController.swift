@@ -358,7 +358,10 @@ open class CameraViewController: UIViewController {
     }
     
     @objc internal func notifyCameraReady() {
-        cameraButton.isEnabled = true
+        // AVCaptureSessionDidStartRunning is posted on the camera queue, not on the main thread.
+        DispatchQueue.main.async { [weak self] in
+            self?.cameraButton.isEnabled = true
+        }
     }
     
     /**

@@ -53,11 +53,16 @@ public class CameraView: UIView {
 
         session.addOutput(imageOutput)
 
-        cameraQueue.sync {
-            session.startRunning()
+        // startRunning() blocks until the camera is up: keep it off the main thread
+        // (hangs reported by the Xcode Organizer).
+        let startedSession: AVCaptureSession = session
+        cameraQueue.async {
+            startedSession.startRunning()
             DispatchQueue.main.async() { [weak self] in
-                self?.createPreview()
-                self?.rotatePreview()
+                // stopSession() may have run meanwhile: no preview for a discarded session.
+                guard let self = self, self.session === startedSession else { return }
+                self.createPreview()
+                self.rotatePreview()
             }
         }
     }
