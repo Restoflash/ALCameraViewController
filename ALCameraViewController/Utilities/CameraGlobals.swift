@@ -17,7 +17,13 @@ internal let scale = UIScreen.main.scale
 public class CameraGlobals {
     public static let shared = CameraGlobals()
     
+    /// Images, xib and strings: in the package's bundle under Swift Package Manager, in the framework's under
+    /// CocoaPods.
+    #if SWIFT_PACKAGE
+    public var bundle = Bundle.module
+    #else
     public var bundle = Bundle(for: CameraViewController.self)
+    #endif
     public var stringsTable = "CameraView"
     public var photoLibraryThumbnailSize = CGSize(width: thumbnailDimension, height: thumbnailDimension)
     public var defaultCameraPosition = AVCaptureDevice.Position.back
